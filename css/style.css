@@ -1,6 +1,11 @@
 * {
     margin: 0;
     padding: 0;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 body {
@@ -16,8 +21,6 @@ body {
 }
 
 canvas {
-    width: 95vw;
-    height: 90vh;
-
     outline: 1px solid #5D53D0;
+    image-rendering: pixelated;
 }

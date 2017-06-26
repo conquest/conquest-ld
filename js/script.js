@@ -1,7 +1,5 @@
 "use strict";
 
-let canvas = document.querySelector("canvas");
-let ctx = canvas.getContext("2d");
+let canvas = new Canvas();
 
-ctx.fillStyle="#DFDCE1";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+canvas.enableRect();
