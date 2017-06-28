@@ -6,6 +6,8 @@ class Canvas {
         this._ctx = this._canvas.getContext("2d");
 
         this._ctx.lineWidth = 2;
+        this._ctx.strokeStyle = 'black';
+
         this._tiles = [];
 
         this.clear();
@@ -23,6 +25,13 @@ class Canvas {
         };
     }
 
+    gridSnap(coord, snap) {
+        coord.x -= coord.x % snap;
+        coord.y -= coord.y % snap;
+
+        return coord;
+    }
+
     mouseInTile(point) {
         for (let tile of this.tiles) {
             if (tile.bl.x < point.x && tile.tr.x > point.x &&
@@ -33,31 +42,39 @@ class Canvas {
     }
 
     enableRect() {
+        let pressed = false;
+        let cornerA = null,
+            cornerB = null;
+
         this._canvas.onmousedown = e => {
-            let cornerA = this.mousePosition(e);
-            if (this.mouseInTile(cornerA)) return;
+            if (!pressed) {
+                cornerA = this.mousePosition(e);
+                if (this.mouseInTile(cornerA)) return;
 
-            let cornerB = null;
+                this._canvas.onmousemove = e2 => {
+                    cornerB = this.mousePosition(e2);
+                    this.refresh();
+                    this.drawBox(this.gridSnap(cornerA, 10), this.gridSnap(cornerB, 10));
+                };
 
-            this._canvas.onmousemove = e2 => {
-                cornerB = this.mousePosition(e2);
-                this.refresh();
-                this.drawBox(cornerA, cornerB);
-            };
+                pressed = true;
+            }
+        };
 
-            this._canvas.onmouseup = () => {
-                if (!cornerB) return;
-
+        this._canvas.onmouseup = () => {
+            if (pressed && cornerB) {
                 this._canvas.onmousemove = null;
                 this.tiles.push(new Tile(cornerA, cornerB));
-            };
+
+                pressed = false;
+            }
         };
     }
 
     refresh() {
         this.clear();
         for (let tile of this.tiles) {
-            this.drawBox(tile.bl, tile.tr);
+            this.drawTile(tile);
         }
     }
 
@@ -70,7 +87,6 @@ class Canvas {
 
     drawBox(a, b) {
         this._ctx.fillStyle = "rgba(49, 49, 49, 0.75)";
-        this._ctx.strokeStyle = 'black';
 
         let w = b.x - a.x,
             h = b.y - a.y,
@@ -79,11 +95,32 @@ class Canvas {
 
         if (Math.abs(w) < 5 || Math.abs(h) < 5) return;
 
-        this._ctx.beginPath();
+        let between = (x, y, z) => (x >= y && x <= z);
+        let encapsulate = (p1, p2, g1, g2) => (p1 <= g1 || p2 <= g1) && (p1 >= g2 || p2 >= g2);
+        for (let t of this.tiles) {
+            if (between(a.y, t.tr.y, t.bl.y) || between(b.y, t.tr.y, t.bl.y) || encapsulate(a.y, b.y, t.tr.y, t.bl.y)) {
+                if (a.x - Math.abs(w) <= t.tr.x && a.x >= t.tr.x) {
+                    offX = t.tr.x - a.x;
+                }
 
+                if (a.x + Math.abs(w) >= t.bl.x && a.x <= t.bl.x) {
+                    w = t.bl.x - a.x;
+                }
+            }
+        }
+
+        this._ctx.beginPath();
         this._ctx.rect(a.x + offX, a.y + offY, Math.abs(w), Math.abs(h));
         this._ctx.fill();
+        this._ctx.stroke();
+    }
 
+    drawTile(tile) {
+        this._ctx.fillStyle = "rgba(49, 49, 49, 0.75)";
+
+        this._ctx.beginPath();
+        this._ctx.rect(tile.bl.x, tile.tr.y, tile.tr.x - tile.bl.x, tile.bl.y - tile.tr.y);
+        this._ctx.fill();
         this._ctx.stroke();
     }
 }
