@@ -107,6 +107,16 @@ class Canvas {
                     w = t.bl.x - a.x;
                 }
             }
+
+            if (between(a.x, t.bl.x, t.tr.x) || between(b.x, t.bl.x, t.tr.x) || encapsulate(a.x, b.x, t.bl.x, t.tr.x)) {
+                if (a.y - Math.abs(h) <= t.bl.y && a.y >= t.bl.y) {
+                    offY = t.bl.y - a.y;
+                }
+
+                if (a.y + Math.abs(h) >= t.tr.y && a.y <= t.tr.y) {
+                    h = t.tr.y - a.y;
+                }
+            }
         }
 
         this._ctx.beginPath();
