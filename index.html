@@ -6,7 +6,15 @@
     </head>
     <body>
         <div id="container">
-            <canvas width="1280" height="720px"></canvas>
+            <div id="draw">
+                <canvas height="720px"></canvas>
+            </div>
+            <div id="modify"></div>
+            <div id="config">
+                <input type="file" name="upload_file" id="up_file">
+                <button id="upload" class="button">upload</button>
+                <a><button id="download">export</button></a>
+            </div>
         </div>
         <script src="js/tile.js"></script>
         <script src="js/canvas.js"></script>
