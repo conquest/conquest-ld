@@ -6,7 +6,7 @@ class Canvas {
         this._ctx = this._canvas.getContext("2d");
 
         this._grid = new Image();
-        this._grid.src = "../assets/grid.svg";
+        this._grid.src = "./assets/grid.svg";
         this._grid.onload = () => {
             this.drawGrid();
         }
@@ -50,6 +50,7 @@ class Canvas {
         this._ctx.strokeStyle = "black";
 
         this._tiles = [];
+        this._prevTile = null;
 
         this.clear();
     }
@@ -105,7 +106,9 @@ class Canvas {
         this._canvas.onmouseup = () => {
             if (pressed && cornerB) {
                 this._canvas.onmousemove = null;
-                this.tiles.push(new Tile(cornerA, cornerB));
+                if (Math.abs(cornerA.x - cornerB.x) >= 10 && Math.abs(cornerA.y - cornerB.y) >= 10) {
+                    this.tiles.push(this._prevTile);
+                }
                 this.refresh();
 
                 pressed = false;
@@ -149,34 +152,17 @@ class Canvas {
             offX = w < 0 ? w : 0,
             offY = h < 0 ? h : 0;
 
-        if (Math.abs(w) < 5 || Math.abs(h) < 5) return;
-
-        let between = (x, y, z) => (x >= y && x <= z);
-        let encapsulate = (p1, p2, g1, g2) => (p1 <= g1 || p2 <= g1) && (p1 >= g2 || p2 >= g2);
         for (let t of this.tiles) {
-            if (between(a.y, t.tr.y, t.bl.y) || between(b.y, t.tr.y, t.bl.y) || encapsulate(a.y, b.y, t.tr.y, t.bl.y)) {
-                if (a.x - Math.abs(w) <= t.tr.x && a.x >= t.tr.x) {
-                    offX = t.tr.x - a.x;
-                }
-
-                if (a.x + Math.abs(w) >= t.bl.x && a.x <= t.bl.x) {
-                    w = t.bl.x - a.x;
-                }
-            }
-
-            if (between(a.x, t.bl.x, t.tr.x) || between(b.x, t.bl.x, t.tr.x) || encapsulate(a.x, b.x, t.bl.x, t.tr.x)) {
-                if (a.y - Math.abs(h) <= t.bl.y && a.y >= t.bl.y) {
-                    offY = t.bl.y - a.y;
-                }
-
-                if (a.y + Math.abs(h) >= t.tr.y && a.y <= t.tr.y) {
-                    h = t.tr.y - a.y;
-                }
+            if (a.x + offX < t.tr.x && a.x + offX + Math.abs(w) > t.bl.x &&
+                a.y + offY < t.bl.y && a.y + offY + Math.abs(h) > t.tr.y) {
+                this.drawTile(this._prevTile);
+                return;
             }
         }
 
         this._ctx.beginPath();
         this._ctx.rect(a.x + offX, a.y + offY, Math.abs(w), Math.abs(h));
+        this._prevTile = new Tile(a, b);
         this._ctx.fill();
         this._ctx.stroke();
     }
