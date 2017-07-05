@@ -47,7 +47,7 @@ class Canvas {
         };
 
         this._ctx.lineWidth = 2;
-        this._ctx.strokeStyle = "black";
+        this._ctx.font = "20px verdana";
 
         this._tiles = [];
         this._prevTile = null;
@@ -74,13 +74,37 @@ class Canvas {
         return coord;
     }
 
-    mouseInTile(point) {
+    tileUnderMouse(point) {
         for (let t of this.tiles) {
             if (t.point.x < point.x && t.point.x + t.width > point.x &&
                 t.point.y + t.height > point.y && t.point.y < point.y) return t;
         }
 
         return null;
+    }
+
+    cardinalUnderMouse(tile, point) {
+        let dirs = tile.cardinal;
+        for (let dir in dirs) {
+            if (point.x > dirs[dir].x - 5 && point.x < dirs[dir].x + 5 &&
+                point.y > dirs[dir].y - 5 && point.y < dirs[dir].y + 5) {
+                return dir;
+            }
+        }
+
+        return null;
+    }
+
+    drawCardinal(tile) {
+        this._ctx.fillStyle = "lightblue";
+        this._ctx.strokeStyle = "rgb(0, 150, 255)";
+
+        for (let dot of Object.values(tile.cardinal)) {
+            this._ctx.beginPath();
+            this._ctx.rect(dot.x - 5, dot.y - 5, 10, 10);
+            this._ctx.fill();
+            this._ctx.stroke();
+        }
     }
 
     mouseDelta(prev, curr) {
@@ -94,6 +118,12 @@ class Canvas {
         let prev = start;
         let holdEvent = this._canvas.onmouseup;
 
+        tile.strokeStyle = "rgb(0, 150, 255)";
+        tile.resize = true;
+        this.refresh();
+
+        let cardinal = this.cardinalUnderMouse(tile, start);
+
         this._canvas.onmousemove = e => {
             let curr = this.mousePosition(e);
 
@@ -101,19 +131,55 @@ class Canvas {
             if (delta.x != 0 || delta.y != 0) {
 
                 let old = Object.assign({}, tile.point);
-                tile.translate(delta.x, delta.y);
-                if (this.findCollision(tile)) {
-                    tile.point = old;
+                old.width = tile.width;
+                old.height = tile.height;
+
+                if (cardinal) {
+                    let dirs = tile.cardinal;
+                    switch(dirs[cardinal]) {
+                        case dirs.N: {
+                            tile.translate(0, delta.y);
+                            tile.reshape(0, -delta.y);
+                            break;
+                        }
+                        case dirs.E: {
+                            tile.reshape(delta.x, 0);
+                            break;
+                        }
+                        case dirs.S: {
+                            tile.reshape(0, delta.y);
+                            break;
+                        }
+                        case dirs.W: {
+                            tile.translate(delta.x, 0);
+                            tile.reshape(-delta.x, 0);
+                            break;
+                        }
+                    }
+                } else {
+                    tile.translate(delta.x, delta.y);
+                }
+
+                if (this.findCollision(tile) || tile.width <= 0 || tile.height <= 0) {
+                    tile.point = {x: old.x, y: old.y};
+
+                    tile.width = old.width;
+                    tile.height = old.height;
                 } else {
                     prev = curr;
                 }
             }
+
             this.refresh();
+            this.drawCardinal(tile);
         };
 
         this._canvas.onmouseup = () => {
             this._canvas.onmousemove = null;
             this._canvas.onmouseup = holdEvent;
+
+            tile.strokeStyle = "black";
+            tile.resize = false;
         };
     }
 
@@ -126,7 +192,15 @@ class Canvas {
             if (!pressed) {
                 cornerA = this.mousePosition(e);
 
-                let selected = this.mouseInTile(cornerA);
+                for (let t of this.tiles) {
+                    if (this.cardinalUnderMouse(t, cornerA)) {
+                        this.handleSelection(t, cornerA);
+                        t.resize = false;
+                        return;
+                    }
+                }
+
+                let selected = this.tileUnderMouse(cornerA);
                 if (selected) {
                     this.handleSelection(selected, cornerA);
                     return;
@@ -151,14 +225,19 @@ class Canvas {
                 this.refresh();
 
                 pressed = false;
+                cornerA = null;
+                cornerB = null;
             }
         };
     }
 
     refresh() {
         this.clear();
-        for (let tile of this.tiles) {
-            this.drawTile(tile);
+        for (let t of this.tiles) {
+            this.drawTile(t);
+            if (t.resize) {
+                this.drawCardinal(t);
+            }
         }
     }
 
@@ -171,6 +250,9 @@ class Canvas {
     }
 
     drawGrid() {
+        this._ctx.strokeStyle = "black";
+        this._ctx.fillStyle = "black";
+
         this._ctx.drawImage(this._grid, this._origin[0], this._origin[1]);
 
         this._ctx.beginPath();
@@ -181,6 +263,11 @@ class Canvas {
         this._ctx.moveTo((offsets[0] / 2) - (offsets[0] / 2 % 10), this._origin[1]);
         this._ctx.lineTo((offsets[0] / 2) - (offsets[0] / 2 % 10), this._origin[1] + offsets[1]);
         this._ctx.stroke();
+
+        let message = "(" + this._origin[0] / 10 + ", " +  -this._origin[1] / 10 + ")",
+            coord = [this._canvas.width + this._origin[0] - 15 - message.length * 10, this._origin[1] + 25];
+
+        this._ctx.fillText(message, coord[0], coord[1]);
     }
 
     findCollision(rect) {
@@ -196,6 +283,7 @@ class Canvas {
     }
 
     drawBox(a, b) {
+        this._ctx.strokeStyle = "black";
         this._ctx.fillStyle = "rgba(135, 195, 104, 0.75)";
 
         let w = b.x - a.x,
@@ -217,7 +305,8 @@ class Canvas {
     }
 
     drawTile(tile) {
-        this._ctx.fillStyle = "rgba(154, 156, 165, 0.75)";
+        this._ctx.fillStyle = tile.fillStyle;
+        this._ctx.strokeStyle = tile.strokeStyle;
 
         this._ctx.beginPath();
         this._ctx.rect(tile.point.x, tile.point.y, tile.width, tile.height);
