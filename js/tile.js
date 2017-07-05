@@ -2,21 +2,33 @@
 
 class Tile {
     constructor(pointA, pointB) {
-        this._bl = {
+        this._point = {
             x: Math.min(pointA.x, pointB.x),
-            y: Math.max(pointA.y, pointB.y)
-        };
-        this._tr = {
-            x: Math.max(pointA.x, pointB.x),
             y: Math.min(pointA.y, pointB.y)
         };
+
+        this._width = Math.abs(pointB.x - pointA.x);
+        this._height = Math.abs(pointB.y - pointA.y);
     }
 
-    get bl() {
-        return this._bl;
+    get point() {
+        return this._point;
     }
 
-    get tr() {
-        return this._tr;
+    set point(point) {
+        this._point = point;
+    }
+
+    get width() {
+        return this._width;
+    }
+
+    get height() {
+        return this._height;
+    }
+
+    translate(x, y) {
+        this.point.x += x;
+        this.point.y += y;
     }
 }

@@ -75,12 +75,46 @@ class Canvas {
     }
 
     mouseInTile(point) {
-        for (let tile of this.tiles) {
-            if (tile.bl.x < point.x && tile.tr.x > point.x &&
-                tile.bl.y > point.y && tile.tr.y < point.y) return true;
+        for (let t of this.tiles) {
+            if (t.point.x < point.x && t.point.x + t.width > point.x &&
+                t.point.y + t.height > point.y && t.point.y < point.y) return t;
         }
 
-        return false;
+        return null;
+    }
+
+    mouseDelta(prev, curr) {
+        return {
+            x: curr.x - prev.x,
+            y: curr.y - prev.y
+        };
+    }
+
+    handleSelection(tile, start) {
+        let prev = start;
+        let holdEvent = this._canvas.onmouseup;
+
+        this._canvas.onmousemove = e => {
+            let curr = this.mousePosition(e);
+
+            let delta = this.mouseDelta(this.gridSnap(prev, 10), this.gridSnap(this.mousePosition(e), 10));
+            if (delta.x != 0 || delta.y != 0) {
+
+                let old = Object.assign({}, tile.point);
+                tile.translate(delta.x, delta.y);
+                if (this.findCollision(tile)) {
+                    tile.point = old;
+                } else {
+                    prev = curr;
+                }
+            }
+            this.refresh();
+        };
+
+        this._canvas.onmouseup = () => {
+            this._canvas.onmousemove = null;
+            this._canvas.onmouseup = holdEvent;
+        };
     }
 
     enableRect() {
@@ -91,7 +125,12 @@ class Canvas {
         this._canvas.onmousedown = e => {
             if (!pressed) {
                 cornerA = this.mousePosition(e);
-                if (this.mouseInTile(cornerA)) return;
+
+                let selected = this.mouseInTile(cornerA);
+                if (selected) {
+                    this.handleSelection(selected, cornerA);
+                    return;
+                }
 
                 this._canvas.onmousemove = e2 => {
                     cornerB = this.mousePosition(e2);
@@ -144,6 +183,18 @@ class Canvas {
         this._ctx.stroke();
     }
 
+    findCollision(rect) {
+        for (let t of this.tiles) {
+            if (rect == t) continue;
+            if (rect.point.x < t.point.x + t.width && rect.point.x + rect.width > t.point.x &&
+                rect.point.y < t.point.y + t.height && rect.point.y + rect.height > t.point.y) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     drawBox(a, b) {
         this._ctx.fillStyle = "rgba(135, 195, 104, 0.75)";
 
@@ -152,17 +203,15 @@ class Canvas {
             offX = w < 0 ? w : 0,
             offY = h < 0 ? h : 0;
 
-        for (let t of this.tiles) {
-            if (a.x + offX < t.tr.x && a.x + offX + Math.abs(w) > t.bl.x &&
-                a.y + offY < t.bl.y && a.y + offY + Math.abs(h) > t.tr.y) {
-                this.drawTile(this._prevTile);
-                return;
-            }
+        let preview = new Tile(a, b);
+        if (this.findCollision(preview)) {
+            this.drawTile(this._prevTile);
+            return;
         }
 
         this._ctx.beginPath();
         this._ctx.rect(a.x + offX, a.y + offY, Math.abs(w), Math.abs(h));
-        this._prevTile = new Tile(a, b);
+        this._prevTile = preview;
         this._ctx.fill();
         this._ctx.stroke();
     }
@@ -171,7 +220,7 @@ class Canvas {
         this._ctx.fillStyle = "rgba(154, 156, 165, 0.75)";
 
         this._ctx.beginPath();
-        this._ctx.rect(tile.bl.x, tile.tr.y, tile.tr.x - tile.bl.x, tile.bl.y - tile.tr.y);
+        this._ctx.rect(tile.point.x, tile.point.y, tile.width, tile.height);
         this._ctx.fill();
         this._ctx.stroke();
     }
