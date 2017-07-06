@@ -43,6 +43,14 @@ class Canvas {
                     this.refresh();
                     break;
                 }
+                case 8: {
+                    for (var i = this.tiles.length - 1; i >= 0; i--) {
+                        console.log(this.tiles[i].selected);
+                        if (this.tiles[i].selected) this.tiles.splice(i, 1);
+                    }
+                    this.refresh();
+                    break;
+                }
             }
         };
 
@@ -121,7 +129,7 @@ class Canvas {
         let holdEvent = this._canvas.onmouseup;
 
         tile.strokeStyle = "rgb(0, 150, 255)";
-        tile.resize = true;
+        tile.selected = true;
         this.refresh();
 
         let cardinal = this.cardinalUnderMouse(tile, start);
@@ -131,7 +139,6 @@ class Canvas {
 
             let delta = this.mouseDelta(this.gridSnap(prev, 10), this.gridSnap(this.mousePosition(e), 10));
             if (delta.x != 0 || delta.y != 0) {
-
                 let old = Object.assign({}, tile.point);
                 old.width = tile.width;
                 old.height = tile.height;
@@ -173,7 +180,6 @@ class Canvas {
             }
 
             this.refresh();
-            this.drawCardinal(tile);
         };
 
         this._canvas.onmouseup = () => {
@@ -181,23 +187,34 @@ class Canvas {
             this._canvas.onmouseup = holdEvent;
 
             tile.strokeStyle = "black";
-            tile.resize = false;
         };
     }
 
     enableRect() {
-        let pressed = false;
-        let cornerA = null,
+        let pressed = false,
+            cornerA = null,
             cornerB = null;
 
+        document.addEventListener("keydown", e => {
+            if (e.keyCode == 27) {
+                this._canvas.onmousemove = null;
+                this.refresh();
+
+                pressed = false;
+                cornerA = null;
+                cornerB = null;
+            }
+        });
+
         this._canvas.onmousedown = e => {
+            this.tiles.map(t => t.selected = false);
             if (!pressed) {
                 cornerA = this.mousePosition(e);
 
                 for (let t of this.tiles) {
                     if (this.cardinalUnderMouse(t, cornerA)) {
                         this.handleSelection(t, cornerA);
-                        t.resize = false;
+                        this.refresh();
                         return;
                     }
                 }
@@ -235,12 +252,20 @@ class Canvas {
 
     refresh() {
         this.clear();
+
+        let defer = [];
         for (let t of this.tiles) {
-            this.drawTile(t);
-            if (t.resize) {
-                this.drawCardinal(t);
+            if (t.selected) {
+                defer.push(t);
+            } else {
+                this.drawTile(t);
             }
         }
+
+        defer.map(t => {
+            this.drawTile(t);
+            this.drawCardinal(t);
+        });
     }
 
     clear() {

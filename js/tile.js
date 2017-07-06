@@ -13,7 +13,7 @@ class Tile {
         this._fillStyle = "rgba(154, 156, 165, 0.75)";
         this._strokeStyle = "black";
 
-        this._resize = false;
+        this._selected = false;
     }
 
     get point() {
@@ -56,12 +56,12 @@ class Tile {
         this._fillStyle = fillStyle;
     }
 
-    get resize() {
-        return this._resize;
+    get selected() {
+        return this._selected;
     }
 
-    set resize(resize) {
-        this._resize = resize;
+    set selected(selected) {
+        this._selected = selected;
     }
 
     translate(x, y) {
