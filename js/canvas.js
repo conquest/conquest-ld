@@ -47,7 +47,9 @@ class Canvas {
         };
 
         this._ctx.lineWidth = 2;
-        this._ctx.font = "20px verdana";
+
+        let fonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', sans-serif";
+        this._ctx.font = "20px " + fonts;
 
         this._tiles = [];
         this._prevTile = null;
@@ -250,9 +252,14 @@ class Canvas {
     }
 
     drawGrid() {
+        let message = "(" + this._origin[0] / 10 + ", " +  -this._origin[1] / 10 + ")",
+            coord = [this._canvas.width + this._origin[0] - message.length * 10, this._origin[1] + 25];
+
+        this._ctx.fillStyle = "#EF5A48";
+        this._ctx.fillText(message, coord[0], coord[1]);
+
         this._ctx.strokeStyle = "black";
         this._ctx.fillStyle = "black";
-
         this._ctx.drawImage(this._grid, this._origin[0], this._origin[1]);
 
         this._ctx.beginPath();
@@ -263,11 +270,6 @@ class Canvas {
         this._ctx.moveTo((offsets[0] / 2) - (offsets[0] / 2 % 10), this._origin[1]);
         this._ctx.lineTo((offsets[0] / 2) - (offsets[0] / 2 % 10), this._origin[1] + offsets[1]);
         this._ctx.stroke();
-
-        let message = "(" + this._origin[0] / 10 + ", " +  -this._origin[1] / 10 + ")",
-            coord = [this._canvas.width + this._origin[0] - 15 - message.length * 10, this._origin[1] + 25];
-
-        this._ctx.fillText(message, coord[0], coord[1]);
     }
 
     findCollision(rect) {

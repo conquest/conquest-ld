@@ -2,10 +2,14 @@
     margin: 0;
     padding: 0;
 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", sans-serif;
+
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+
+    cursor: default;
 }
 
 *:focus {
@@ -13,7 +17,7 @@
 }
 
 body {
-    background-color: #FBFAFD;
+    background-color: #E7E9EC;
 }
 
 #container {
@@ -21,7 +25,9 @@ body {
     flex-wrap: wrap;
     flex-direction: column;
 
-    height: 721px;
+    height: 720px;
+
+    background-color: #EC5745;
 }
 
 #draw {
@@ -31,12 +37,15 @@ body {
 #modify,
 #config {
     width: 20%;
-
-    outline: 0.1vw solid #5D53D0;
 }
 
 #modify {
-    flex: 0 0 calc(720px - 2.4vw);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    flex: 0 0 calc(719px - 2.4vw);
 }
 
 #config {
@@ -46,7 +55,6 @@ body {
 }
 
 canvas {
-    outline: 0.1vw solid #5D53D0;
     image-rendering: pixelated;
 }
 
@@ -57,9 +65,10 @@ input[type=file] {
 button {
     width: 10vw;
     height: 2.4vw;
+    padding: 0 2vw;
 
-    color: #FBFAFD;
-    background-color: #5D53D0;
+    color: white;
+    background-color: #EF5A48;
     border-color: transparent;
     border: 0;
 
@@ -68,11 +77,33 @@ button {
     line-height: 1.2vw;
     vertical-align: middle;
 
-    padding: 0 2vw;
-
-    transition: all 200ms;
+    transition: all 250ms ease-in-out;
 }
 
 button:hover {
-    background-color: #7D73F0;
+    background-color: #FF6A58;
+}
+
+.card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 95%;
+    height: 10vh;
+    margin-top: 0.5vw;
+
+    background-color: #EF5A48;
+    color: white;
+
+    text-transform: uppercase;
+    font-size: 1vw;
+    line-height: 1.2vw;
+
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 300ms ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
 }
