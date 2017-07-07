@@ -12,6 +12,23 @@ class Canvas {
         }
 
         this._origin = [0,0];
+        this._ctx.lineWidth = 2;
+
+        let fonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', sans-serif";
+        this._ctx.font = "20px " + fonts;
+
+        this._tiles = [new Tile({x: 390, y: 360}, {x: 700, y: 50})];
+        this._prevTile = null;
+
+        this.clear();
+    }
+
+    get tiles() {
+        return this._tiles;
+    }
+
+    enable() {
+        this._canvas.onclick = null;
 
         document.onkeydown = e => {
             switch (e.keyCode) {
@@ -45,7 +62,6 @@ class Canvas {
                 }
                 case 8: {
                     for (var i = this.tiles.length - 1; i >= 0; i--) {
-                        console.log(this.tiles[i].selected);
                         if (this.tiles[i].selected) this.tiles.splice(i, 1);
                     }
                     this.refresh();
@@ -53,20 +69,6 @@ class Canvas {
                 }
             }
         };
-
-        this._ctx.lineWidth = 2;
-
-        let fonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', sans-serif";
-        this._ctx.font = "20px " + fonts;
-
-        this._tiles = [];
-        this._prevTile = null;
-
-        this.clear();
-    }
-
-    get tiles() {
-        return this._tiles;
     }
 
     mousePosition(e) {
@@ -190,7 +192,53 @@ class Canvas {
         };
     }
 
+    findCollision(rect) {
+        for (let t of this.tiles) {
+            if (rect == t) continue;
+            if (rect.point.x < t.point.x + t.width && rect.point.x + rect.width > t.point.x &&
+                rect.point.y < t.point.y + t.height && rect.point.y + rect.height > t.point.y) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    drawBox(a, b) {
+        this._ctx.strokeStyle = "black";
+        this._ctx.fillStyle = "rgba(135, 195, 104, 0.75)";
+
+        let w = b.x - a.x,
+            h = b.y - a.y,
+            offX = w < 0 ? w : 0,
+            offY = h < 0 ? h : 0;
+
+        let preview = new Tile(a, b);
+        if (this.findCollision(preview)) {
+            this.drawTile(this._prevTile);
+            return;
+        }
+
+        this._ctx.beginPath();
+        this._ctx.rect(a.x + offX, a.y + offY, Math.abs(w), Math.abs(h));
+        this._prevTile = preview;
+        this._ctx.fill();
+        this._ctx.stroke();
+    }
+
+    drawTile(tile) {
+        this._ctx.fillStyle = tile.fillStyle;
+        this._ctx.strokeStyle = tile.strokeStyle;
+
+        this._ctx.beginPath();
+        this._ctx.rect(tile.point.x, tile.point.y, tile.width, tile.height);
+        this._ctx.fill();
+        this._ctx.stroke();
+    }
+
     enableRect() {
+        this.enable();
+
         let pressed = false,
             cornerA = null,
             cornerB = null;
@@ -250,20 +298,75 @@ class Canvas {
         };
     }
 
+    drawCity(tile) {
+        let city = tile.city;
+        this._ctx.fillStyle = city.fillStyle;
+
+        this._ctx.beginPath();
+        this._ctx.arc(city.point.x, city.point.y, City.radius, 0, 2 * Math.PI);
+        this._ctx.fill();
+        this._ctx.stroke();
+    }
+
+    enableCity() {
+        this.enable();
+
+        let cityUnderMouse = (tile, point) => {
+            let c = tile.city,
+                rad = City.radius / 2;
+
+            if (c && point.x > c.point.x - rad && point.x < c.point.x + rad &&
+                point.y > c.point.y - rad && point.y < c.point.y + rad) {
+                return c;
+            }
+
+            return null;
+        };
+
+        this._canvas.onclick = e => {
+            let click = this.mousePosition(e),
+                tile = this.tileUnderMouse(click);
+
+            if (tile) {
+                let city = cityUnderMouse(tile, click),
+                    snap = this.gridSnap(click, 10);
+
+                if (city) {
+                    city.major = !city.major;
+                }
+
+                if (tile.city) {
+                    tile.city.point = snap;
+                } else {
+                    tile.city = new City(snap);
+                }
+
+                this.refresh();
+            }
+        };
+    }
+
     refresh() {
         this.clear();
 
         let defer = [];
+        let draw = t => {
+            this.drawTile(t);
+            if (t.city) {
+                this.drawCity(t);
+            }
+        };
+
         for (let t of this.tiles) {
             if (t.selected) {
                 defer.push(t);
             } else {
-                this.drawTile(t);
+                draw(t);
             }
         }
 
         defer.map(t => {
-            this.drawTile(t);
+            draw(t);
             this.drawCardinal(t);
         });
     }
@@ -294,50 +397,6 @@ class Canvas {
 
         this._ctx.moveTo((offsets[0] / 2) - (offsets[0] / 2 % 10), this._origin[1]);
         this._ctx.lineTo((offsets[0] / 2) - (offsets[0] / 2 % 10), this._origin[1] + offsets[1]);
-        this._ctx.stroke();
-    }
-
-    findCollision(rect) {
-        for (let t of this.tiles) {
-            if (rect == t) continue;
-            if (rect.point.x < t.point.x + t.width && rect.point.x + rect.width > t.point.x &&
-                rect.point.y < t.point.y + t.height && rect.point.y + rect.height > t.point.y) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    drawBox(a, b) {
-        this._ctx.strokeStyle = "black";
-        this._ctx.fillStyle = "rgba(135, 195, 104, 0.75)";
-
-        let w = b.x - a.x,
-            h = b.y - a.y,
-            offX = w < 0 ? w : 0,
-            offY = h < 0 ? h : 0;
-
-        let preview = new Tile(a, b);
-        if (this.findCollision(preview)) {
-            this.drawTile(this._prevTile);
-            return;
-        }
-
-        this._ctx.beginPath();
-        this._ctx.rect(a.x + offX, a.y + offY, Math.abs(w), Math.abs(h));
-        this._prevTile = preview;
-        this._ctx.fill();
-        this._ctx.stroke();
-    }
-
-    drawTile(tile) {
-        this._ctx.fillStyle = tile.fillStyle;
-        this._ctx.strokeStyle = tile.strokeStyle;
-
-        this._ctx.beginPath();
-        this._ctx.rect(tile.point.x, tile.point.y, tile.width, tile.height);
-        this._ctx.fill();
         this._ctx.stroke();
     }
 }

@@ -14,6 +14,8 @@ class Tile {
         this._strokeStyle = "black";
 
         this._selected = false;
+
+        this._city = null;
     }
 
     get point() {
@@ -62,6 +64,14 @@ class Tile {
 
     set selected(selected) {
         this._selected = selected;
+    }
+
+    get city() {
+        return this._city;
+    }
+
+    set city(city) {
+        this._city = city;
     }
 
     translate(x, y) {
