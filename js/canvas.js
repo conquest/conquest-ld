@@ -20,6 +20,7 @@ class Canvas {
         this._tiles = [];
         this._prevTile = null;
 
+        this._keydown = null;
         this.clear();
     }
 
@@ -62,15 +63,11 @@ class Canvas {
                     this.refresh();
                     break;
                 }
-                case 8: {
-                    for (var i = this.tiles.length - 1; i >= 0; i--) {
-                        if (this.tiles[i].selected) this.tiles.splice(i, 1);
-                    }
-                    this.refresh();
-                    break;
-                }
             }
         };
+
+        document.removeEventListener("keydown", this._keydown);
+        this._keydown = null;
 
         this.tiles.map(tile => tile.selected = false);
         this.refresh();
@@ -257,7 +254,7 @@ class Canvas {
             cornerA = null,
             cornerB = null;
 
-        document.addEventListener("keydown", e => {
+        this._keydown = e => {
             if (e.keyCode == 27) {
                 this._canvas.onmousemove = null;
                 this.refresh();
@@ -265,8 +262,14 @@ class Canvas {
                 pressed = false;
                 cornerA = null;
                 cornerB = null;
+            } else if (e.keyCode == 8) {
+                for (let i = this.tiles.length - 1; i >= 0; i--) {
+                    if (this.tiles[i].selected) this.tiles.splice(i, 1);
+                }
+                this.refresh();
             }
-        });
+        };
+        document.addEventListener("keydown", this._keydown);
 
         this._canvas.onmousedown = e => {
             this.tiles.map(t => t.selected = false);
@@ -337,6 +340,18 @@ class Canvas {
 
             return null;
         };
+
+        this._keydown = e => {
+            if (e.keyCode == 8) {
+                this.tiles.map(tile => {
+                    if (tile.city == city) {
+                        tile.city = null;
+                    }
+                });
+                this.refresh();
+            }
+        };
+        document.addEventListener("keydown", this._keydown);
 
         this._canvas.onclick = e => {
             let click = this.mousePosition(e),
