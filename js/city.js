@@ -30,4 +30,9 @@ class City {
     get fillStyle() {
         return this._major ? "goldenrod" : "lightgray";
     }
+
+    translate(x, y) {
+        this.point.x += x;
+        this.point.y += y;
+    }
 }

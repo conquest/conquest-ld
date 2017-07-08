@@ -17,7 +17,7 @@ class Canvas {
         let fonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', sans-serif";
         this._ctx.font = "20px " + fonts;
 
-        this._tiles = [new Tile({x: 390, y: 360}, {x: 700, y: 50})];
+        this._tiles = [];
         this._prevTile = null;
 
         this.clear();
@@ -29,6 +29,8 @@ class Canvas {
 
     enable() {
         this._canvas.onclick = null;
+        this._canvas.onmousedown = null;
+        this._canvas.onmouseup = null;
 
         document.onkeydown = e => {
             switch (e.keyCode) {
@@ -69,6 +71,9 @@ class Canvas {
                 }
             }
         };
+
+        this.tiles.map(tile => tile.selected = false);
+        this.refresh();
     }
 
     mousePosition(e) {
@@ -145,6 +150,7 @@ class Canvas {
                 old.width = tile.width;
                 old.height = tile.height;
 
+                let city = tile.city;
                 if (cardinal) {
                     let dirs = tile.cardinal;
                     switch(dirs[cardinal]) {
@@ -167,8 +173,16 @@ class Canvas {
                             break;
                         }
                     }
+
+                    if (city && (city.point.x > tile.point.x + tile.width || city.point.x < tile.point.x ||
+                        city.point.y < tile.point.y || city.point.y > tile.point.y + tile.height)) {
+                        tile.city = null;
+                    }
                 } else {
                     tile.translate(delta.x, delta.y);
+                    if (city) {
+                        city.translate(delta.x, delta.y);
+                    }
                 }
 
                 if (this.findCollision(tile) || tile.width <= 0 || tile.height <= 0) {
@@ -310,6 +324,7 @@ class Canvas {
 
     enableCity() {
         this.enable();
+        let city = null;
 
         let cityUnderMouse = (tile, point) => {
             let c = tile.city,
@@ -328,8 +343,8 @@ class Canvas {
                 tile = this.tileUnderMouse(click);
 
             if (tile) {
-                let city = cityUnderMouse(tile, click),
-                    snap = this.gridSnap(click, 10);
+                city = cityUnderMouse(tile, click);
+                let snap = this.gridSnap(click, 10);
 
                 if (city) {
                     city.major = !city.major;

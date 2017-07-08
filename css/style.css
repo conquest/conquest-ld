@@ -107,3 +107,8 @@ button:hover {
 .card:hover {
     box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
 }
+
+.card.selected {
+    background-color: #FF6A58;
+
+}
