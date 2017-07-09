@@ -21,6 +21,7 @@ class Canvas {
         this._prevTile = null;
 
         this._keydown = null;
+        this._state = true;
         this.clear();
     }
 
@@ -28,12 +29,19 @@ class Canvas {
         return this._tiles;
     }
 
+    set state(state) {
+        this._state = state;
+    }
+
+    get state() {
+        return this._state;
+    }
+
     enable() {
-        this._canvas.onclick = null;
-        this._canvas.onmousedown = null;
-        this._canvas.onmouseup = null;
+        this.disable();
 
         document.onkeydown = e => {
+            if (!this.state) return;
             switch (e.keyCode) {
                 case 65:
                 case 37: {
@@ -65,6 +73,13 @@ class Canvas {
                 }
             }
         };
+    }
+
+    disable() {
+        this._canvas.onclick = null;
+        this._canvas.onmousedown = null;
+        this._canvas.onmouseup = null;
+        document.onkeydown = null;
 
         document.removeEventListener("keydown", this._keydown);
         this._keydown = null;
@@ -72,6 +87,8 @@ class Canvas {
         this.tiles.map(tile => tile.selected = false);
         this.refresh();
     }
+
+
 
     mousePosition(e) {
         let rect = this._canvas.getBoundingClientRect();
@@ -359,7 +376,7 @@ class Canvas {
 
             if (tile) {
                 city = cityUnderMouse(tile, click);
-                let snap = this.gridSnap(click, 10);
+                let snap = this.gridSnap(click, 5);
 
                 if (city) {
                     city.major = !city.major;
@@ -374,6 +391,11 @@ class Canvas {
                 this.refresh();
             }
         };
+    }
+
+    // TODO region mode
+    enableRegion() {
+        this.enable();
     }
 
     refresh() {

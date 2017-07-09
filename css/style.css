@@ -62,7 +62,7 @@ input[type=file] {
     display: none;
 }
 
-button {
+button, a {
     width: 10vw;
     height: 2.4vw;
     padding: 0 2vw;
@@ -80,6 +80,10 @@ button {
     transition: all 250ms ease-in-out;
 }
 
+a {
+    padding: 0;
+}
+
 button:hover {
     background-color: #FF6A58;
 }
@@ -90,7 +94,7 @@ button:hover {
     align-items: center;
 
     width: 95%;
-    height: 10vh;
+    height: 7.5vh;
     margin-top: 0.5vw;
 
     background-color: #EF5A48;
@@ -111,4 +115,55 @@ button:hover {
 .card.selected {
     background-color: #FF6A58;
 
+}
+
+#region-menu {
+    position: fixed;
+    bottom: 10%;
+    left: 0;
+    right: 0;
+
+    width: fit-content;
+    padding: 2.5vh 1vw;
+    margin: 0 auto;
+}
+
+input[type=color] {
+    visibility: hidden;
+}
+
+form {
+    display: flex;
+    align-items: center;
+}
+
+input {
+    padding: 0.5vw 0;
+    background: transparent;
+
+    border-color: transparent;
+    border-bottom: .1vw solid white;
+
+    line-height: 1.2vw;
+    text-align: center;
+}
+
+::-webkit-input-placeholder,
+-moz-placeholder,
+ms-input-placeholder, input {
+    color: #E3E3E3;
+}
+
+input:focus {
+    color: white;
+}
+
+#colors {
+    display: flex;
+
+    height: 2.4vw;
+    margin: 0 1vw;
+
+    border: 0.1vw solid white;
+    background-color: white;
 }

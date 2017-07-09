@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
     <head>
         <title>Conquest Level Design</title>
@@ -8,11 +8,20 @@
         <div id="container">
             <div id="draw">
                 <canvas height="720px"></canvas>
+                <div id="region-menu" class="card">
+                    <form>
+                        <input type="text" placeholder="Region Name" autocomplete="off" required="true">
+                        <div id="colors">
+                            <label id="in-wrapper"><input type="color" id="wheel" value="#ffffff"></label>
+                        </div>
+                        <button id="set">set</button>
+                    </form>
+                </div>
             </div>
             <div id="modify">
                 <div id="tile" class="card">Tile</div>
                 <div id="city" class="card">City</div>
-                <div class="card">Region</div>
+                <div id="region" class="card">Region</div>
             </div>
             <div id="config">
                 <input type="file" name="upload_file" id="up_file">
