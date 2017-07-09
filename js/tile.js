@@ -10,7 +10,7 @@ class Tile {
         this._width = Math.abs(pointB.x - pointA.x);
         this._height = Math.abs(pointB.y - pointA.y);
 
-        this._fillStyle = "rgba(154, 156, 165, 0.75)";
+        this._fillStyle = "rgba(154, 156, 165, 0.65)";
         this._strokeStyle = "black";
 
         this._selected = false;

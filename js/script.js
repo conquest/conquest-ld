@@ -34,22 +34,28 @@ document.querySelector("#wheel").onchange = function () {
     document.querySelector("#colors").style.backgroundColor = this.value;
 };
 
-draw.onclick = () => {
-    if (!canvas.state) {
-        canvas.enable();
-        canvas.state = true;
-    }
-};
+draw.onclick = () => canvas.state = true;
 
 menu.onclick = e => {
     e.stopPropagation();
     if (canvas.state) {
-        canvas.disable();
         canvas.state = false;
     }
 };
 
 document.querySelector("form").onsubmit = e => {
     e.preventDefault();
-    // TODO form submission
+    let name = document.querySelector("#name").value.trim(),
+        wheel = document.querySelector("#wheel").value;
+
+    let regions = canvas.regions;
+    for (let region of regions) {
+        if (region.name == name) {
+            region.color = wheel;
+            canvas.currentRegion = region;
+            return;
+        }
+    }
+
+    canvas.addRegion(name, wheel);
 };

@@ -11,7 +11,7 @@ class Canvas {
             this.drawGrid();
         }
 
-        this._origin = [0,0];
+        this._origin = [0, 0];
         this._ctx.lineWidth = 2;
 
         let fonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', sans-serif";
@@ -19,6 +19,9 @@ class Canvas {
 
         this._tiles = [];
         this._prevTile = null;
+
+        this._regions = [];
+        this._currentRegion = null;
 
         this._keydown = null;
         this._state = true;
@@ -29,12 +32,20 @@ class Canvas {
         return this._tiles;
     }
 
+    get state() {
+        return this._state;
+    }
+
     set state(state) {
         this._state = state;
     }
 
-    get state() {
-        return this._state;
+    get regions() {
+        return this._regions;
+    }
+
+    set currentRegion(region) {
+        this._currentRegion = region;
     }
 
     enable() {
@@ -87,8 +98,6 @@ class Canvas {
         this.tiles.map(tile => tile.selected = false);
         this.refresh();
     }
-
-
 
     mousePosition(e) {
         let rect = this._canvas.getBoundingClientRect();
@@ -234,7 +243,7 @@ class Canvas {
 
     drawBox(a, b) {
         this._ctx.strokeStyle = "black";
-        this._ctx.fillStyle = "rgba(135, 195, 104, 0.75)";
+        this._ctx.fillStyle = "rgba(135, 195, 104, 0.65)";
 
         let w = b.x - a.x,
             h = b.y - a.y,
@@ -393,9 +402,44 @@ class Canvas {
         };
     }
 
-    // TODO region mode
+    addRegion(name, color) {
+        let region = new Region(name, color);
+        this._regions.push(region);
+        this._currentRegion = region;
+    }
+
     enableRegion() {
         this.enable();
+
+        this._canvas.onclick = e => {
+            if (this._currentRegion) {
+                let click = this.mousePosition(e),
+                    tile = this.tileUnderMouse(click);
+
+                if (tile) {
+                    let old = tile.fillStyle;
+                    tile.fillStyle = this._currentRegion.color;
+
+                    if (!this._currentRegion.contains(tile)) {
+                        for (let region of this.regions) {
+                            region.remove(tile);
+                        }
+
+                        this._currentRegion.add(tile);
+                    } else {
+                        if (old == tile.fillStyle) {
+                            this._currentRegion.remove(tile);
+                            this._tiles.push(tile);
+                            tile.fillStyle = "rgba(154, 156, 165, 0.65)";
+                        } else {
+                            tile.fillStyle = this._currentRegion.color;
+                        }
+                    }
+                }
+            }
+
+            this.refresh();
+        };
     }
 
     refresh() {
