@@ -31,6 +31,7 @@ body {
 }
 
 #draw {
+    position: relative;
     width: 80vw;
 }
 
@@ -118,8 +119,8 @@ button:hover {
 }
 
 #region-menu {
-    position: fixed;
-    bottom: 10%;
+    position: absolute;
+    bottom: 1%;
     left: 0;
     right: 0;
 
@@ -166,4 +167,54 @@ input:focus {
 
     border: 0.1vw solid white;
     background-color: white;
+}
+
+#region-list {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+
+    position: absolute;
+    width: 20vw;
+    height: 30vh;
+    top: 1vh;
+    left: 1vh;
+    padding: 1vw;
+
+    background-color: #EF5A48;
+    color: white;
+
+    font-size: 0.9vw;
+    line-height: 1.2vw;
+
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+    min-height: min-content;
+    padding: 0.5vw 0;
+
+    transition: 250ms ease-in-out;
+}
+
+.row:hover, .selected {
+    background-color: #FF6A58;
+}
+
+p {
+    overflow: auto;
+}
+
+.color-preview {
+    height: 2vw;
+    width: 2.5vw;
+    min-width: 2.5vw;
+
+    border: 0.1vw solid white;
 }
