@@ -118,7 +118,7 @@ button:hover {
 
 }
 
-#region-menu {
+.menu {
     position: absolute;
     bottom: 1%;
     left: 0;

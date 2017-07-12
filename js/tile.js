@@ -11,7 +11,6 @@ class Tile {
         this._height = Math.abs(pointB.y - pointA.y);
 
         this._fillStyle = "rgba(154, 156, 165, 0.65)";
-        this._strokeStyle = "black";
 
         this._selected = false;
 

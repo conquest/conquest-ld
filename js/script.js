@@ -9,14 +9,17 @@ let canvas = new Canvas();
 let tile = document.querySelector("#tile"),
     city = document.querySelector("#city"),
     region = document.querySelector("#region"),
+    image = document.querySelector("#image"),
     menu = document.querySelector("#region-menu"),
-    list = document.querySelector("#region-list");
+    list = document.querySelector("#region-list"),
+    upload = document.querySelector("#upload-menu");
 
 let cards = Array.from(document.querySelector("#modify").childNodes).filter(node => node.nodeType != 3);
 cards.map(card => {
     card.onclick = () => {
         menu.style.display = "none";
         list.style.display = "none";
+        upload.style.display = "none";
 
         cards.map(card => card.classList.remove("selected"));
         card.classList.add("selected");
@@ -32,6 +35,10 @@ region.addEventListener("click", () => {
     list.style.display = "flex";
 
     canvas.enableRegion();
+});
+
+image.addEventListener("click", () => {
+    canvas.enableImage();
 });
 
 document.querySelector("#wheel").onchange = function () {
@@ -94,4 +101,35 @@ document.querySelector("form").onsubmit = e => {
     };
 
     clearAndSelect(row);
+};
+
+document.querySelector("#upload").onclick = function () {
+    upload.style.display = "flex";
+
+    let picture = document.querySelector("#picture"),
+        level = document.querySelector("#level"),
+        input = document.querySelector("#up_file");
+
+    if (!picture.onclick) {
+        picture.onclick = () => {
+            input.onchange = e => {
+                let file = e.target.files[0];
+                if (!file) return;
+
+                let reader = new FileReader();
+                reader.readAsDataURL(file);
+
+                reader.onload = () => {
+                    canvas.image = reader.result;
+                    upload.style.display = "none";
+                };
+            };
+
+            input.click();
+        };
+
+        level.onclick = () => {
+            input.click();
+        };
+    }
 };

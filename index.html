@@ -9,7 +9,7 @@
             <div id="draw">
                 <div id="region-list"></div>
                 <canvas height="720px"></canvas>
-                <div id="region-menu" class="card">
+                <div id="region-menu" class="card menu">
                     <form>
                         <input id="name" type="text" placeholder="Region Name" autocomplete="off" required="true">
                         <div id="colors">
@@ -18,11 +18,16 @@
                         <button id="set">set</button>
                     </form>
                 </div>
+                <div id="upload-menu" class="card menu">
+                    <button id="picture">picture</button>
+                    <button id="level">level</button>
+                </div>
             </div>
             <div id="modify">
                 <div id="tile" class="card">Tile</div>
                 <div id="city" class="card">City</div>
                 <div id="region" class="card">Region</div>
+                <div id="image" class="card">Image</div>
             </div>
             <div id="config">
                 <input type="file" name="upload_file" id="up_file">

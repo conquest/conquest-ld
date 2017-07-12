@@ -23,6 +23,10 @@ class Canvas {
         this._regions = [];
         this._currentRegion = null;
 
+        this._image = new Image();
+        this._imagePosition = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10));
+        this._imageMode = false;
+
         this._keydown = null;
         this._state = true;
         this.clear();
@@ -46,6 +50,16 @@ class Canvas {
 
     set currentRegion(region) {
         this._currentRegion = region;
+    }
+
+    set image(src) {
+        this._image.src = src;
+        this._imagePosition = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10));
+
+        this._image.onload = () => {
+            this._imagePosition[1] -= this._image.height;
+            this.refresh();
+        };
     }
 
     enable() {
@@ -95,6 +109,8 @@ class Canvas {
         document.removeEventListener("keydown", this._keydown);
         this._keydown = null;
 
+        this._imageMode = false;
+
         this.tiles.map(tile => tile.selected = false);
         this.refresh();
     }
@@ -107,7 +123,7 @@ class Canvas {
         };
     }
 
-    gridSnap(coord, snap) {
+    gridSnap(coord, snap=10) {
         coord.x -= coord.x % snap;
         coord.y -= coord.y % snap;
 
@@ -158,7 +174,6 @@ class Canvas {
         let prev = start;
         let holdEvent = this._canvas.onmouseup;
 
-        tile.strokeStyle = "rgb(0, 150, 255)";
         tile.selected = true;
         this.refresh();
 
@@ -167,7 +182,7 @@ class Canvas {
         this._canvas.onmousemove = e => {
             let curr = this.mousePosition(e);
 
-            let delta = this.mouseDelta(this.gridSnap(prev, 10), this.gridSnap(this.mousePosition(e), 10));
+            let delta = this.mouseDelta(this.gridSnap(prev), this.gridSnap(this.mousePosition(e)));
             if (delta.x != 0 || delta.y != 0) {
                 let old = Object.assign({}, tile.point);
                 old.width = tile.width;
@@ -224,8 +239,6 @@ class Canvas {
         this._canvas.onmouseup = () => {
             this._canvas.onmousemove = null;
             this._canvas.onmouseup = holdEvent;
-
-            tile.strokeStyle = "black";
         };
     }
 
@@ -265,7 +278,7 @@ class Canvas {
 
     drawTile(tile) {
         this._ctx.fillStyle = tile.fillStyle;
-        this._ctx.strokeStyle = tile.strokeStyle;
+        this._ctx.strokeStyle = tile.selected ? "rgb(0, 150, 255)" : "black";
 
         this._ctx.beginPath();
         this._ctx.rect(tile.point.x, tile.point.y, tile.width, tile.height);
@@ -298,12 +311,11 @@ class Canvas {
         document.addEventListener("keydown", this._keydown);
 
         this._canvas.onmousedown = e => {
-            this.tiles.map(t => t.selected = false);
             if (!pressed) {
                 cornerA = this.mousePosition(e);
 
                 for (let t of this.tiles) {
-                    if (this.cardinalUnderMouse(t, cornerA)) {
+                    if (t.selected && this.cardinalUnderMouse(t, cornerA)) {
                         this.handleSelection(t, cornerA);
                         this.refresh();
                         return;
@@ -312,6 +324,7 @@ class Canvas {
 
                 let selected = this.tileUnderMouse(cornerA);
                 if (selected) {
+                    this.tiles.map(t => t.selected = false);
                     this.handleSelection(selected, cornerA);
                     return;
                 }
@@ -319,11 +332,12 @@ class Canvas {
                 this._canvas.onmousemove = e2 => {
                     cornerB = this.mousePosition(e2);
                     this.refresh();
-                    this.drawBox(this.gridSnap(cornerA, 10), this.gridSnap(cornerB, 10));
+                    this.drawBox(this.gridSnap(cornerA), this.gridSnap(cornerB));
                 };
 
                 pressed = true;
             }
+            this.tiles.map(t => t.selected = false);
         };
 
         this._canvas.onmouseup = () => {
@@ -442,6 +456,34 @@ class Canvas {
         };
     }
 
+    enableImage() {
+        this.enable();
+
+        this._imageMode = true;
+        this.refresh();
+
+        this._canvas.onmousedown = e => {
+            let prev = this.mousePosition(e);
+
+            this._canvas.onmousemove = e => {
+                let curr = this.mousePosition(e);
+
+                let delta = this.mouseDelta(this.gridSnap(prev), this.gridSnap(this.mousePosition(e)));
+                if (delta.x != 0 || delta.y != 0) {
+                    this._imagePosition[0] += delta.x;
+                    this._imagePosition[1] += delta.y;
+
+                    this.refresh();
+                    prev = curr;
+                }
+            }
+        };
+
+        this._canvas.onmouseup = () => {
+            this._canvas.onmousemove = null;
+        };
+    }
+
     refresh() {
         this.clear();
 
@@ -465,6 +507,10 @@ class Canvas {
             draw(t);
             this.drawCardinal(t);
         });
+
+        if (this._imageMode) {
+            this._ctx.drawImage(this._image, this._imagePosition[0], this._imagePosition[1]);
+        }
     }
 
     clear() {
@@ -476,11 +522,16 @@ class Canvas {
     }
 
     drawGrid() {
-        let message = "(" + this._origin[0] / 10 + ", " +  -this._origin[1] / 10 + ")",
-            coord = [this._canvas.width + this._origin[0] - message.length * 10, this._origin[1] + 25];
+        let center = "(" + this._origin[0] / 10 + ", " +  -this._origin[1] / 10 + ")",
+            total = "Total Tiles: " + this.tiles.length
+
+        if (!this._imageMode && this._image.src) {
+            this._ctx.drawImage(this._image, this._imagePosition[0], this._imagePosition[1]);
+        }
 
         this._ctx.fillStyle = "#EF5A48";
-        this._ctx.fillText(message, coord[0], coord[1]);
+        this._ctx.fillText(center, this._canvas.width + this._origin[0] - center.length * 10, this._origin[1] + 25);
+        this._ctx.fillText(total, this._canvas.width + this._origin[0] - total.length * 9, this._canvas.height + this._origin[1] - 10)
 
         this._ctx.strokeStyle = "black";
         this._ctx.fillStyle = "black";
