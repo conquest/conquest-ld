@@ -1,25 +1,27 @@
 "use strict";
 
-let draw = document.querySelector("#draw"),
+const draw = document.getElementById("draw"),
     cvs = document.querySelector("canvas");
 cvs.width = draw.offsetWidth - (draw.offsetWidth % 10);
 
-let canvas = new Canvas();
+const canvas = new Canvas();
 
-let tile = document.querySelector("#tile"),
-    city = document.querySelector("#city"),
-    region = document.querySelector("#region"),
-    image = document.querySelector("#image"),
-    menu = document.querySelector("#region-menu"),
-    list = document.querySelector("#region-list"),
-    upload = document.querySelector("#upload-menu");
+const tile = document.getElementById("tile"),
+    city = document.getElementById("city"),
+    region = document.getElementById("region"),
+    image = document.getElementById("image"),
+    imageMenu = document.getElementById("image-menu"),
+    regionMenu = document.getElementById("region-menu"),
+    list = document.getElementById("region-list"),
+    uploadMenu = document.getElementById("upload-menu");
 
-let cards = Array.from(document.querySelector("#modify").childNodes).filter(node => node.nodeType != 3);
+const cards = Array.from(document.getElementById("modify").childNodes).filter(node => node.nodeType != 3);
 cards.map(card => {
     card.onclick = () => {
-        menu.style.display = "none";
+        imageMenu.style.display = "none";
+        regionMenu.style.display = "none";
         list.style.display = "none";
-        upload.style.display = "none";
+        uploadMenu.style.display = "none";
 
         cards.map(card => card.classList.remove("selected"));
         card.classList.add("selected");
@@ -31,33 +33,71 @@ tile.click();
 
 city.addEventListener("click", () => canvas.enableCity());
 region.addEventListener("click", () => {
-    menu.style.display = "flex";
+    regionMenu.style.display = "flex";
     list.style.display = "flex";
 
     canvas.enableRegion();
 });
 
 image.addEventListener("click", () => {
+    let img = canvas.image;
+    if (!img.img.src) return;
+
+    imageMenu.style.display = "flex";
+    let width = document.getElementById("width"),
+        height = document.getElementById("height"),
+        scale = document.getElementById("scale");
+
+    width.value = img.scale.width;
+    height.value = img.scale.height;
+    scale.value = img.scale.factor;
+
     canvas.enableImage();
 });
 
-document.querySelector("#wheel").onchange = function () {
-    document.querySelector("#colors").style.backgroundColor = this.value;
+document.getElementById("wheel").onchange = function () {
+    document.getElementById("colors").style.backgroundColor = this.value;
 };
 
 draw.onclick = () => canvas.state = true;
 
-menu.onclick = e => {
+const canvasOff = e => {
     e.stopPropagation();
     if (canvas.state) {
         canvas.state = false;
     }
 };
+regionMenu.onclick = canvasOff;
+imageMenu.onclick = canvasOff;
 
-document.querySelector("form").onsubmit = e => {
+document.getElementById("image-form").onsubmit = e => {
     e.preventDefault();
-    let name = document.querySelector("#name").value.trim(),
-        wheel = document.querySelector("#wheel").value;
+    let width = parseInt(document.getElementById("width").value),
+        height = parseInt(document.getElementById("height").value),
+        scale = parseFloat(document.getElementById("scale").value);
+
+    canvas.scale = {width, height, scale};
+};
+
+document.getElementById("reset").onclick = () => {
+    let img = canvas.image;
+
+    document.getElementById("width").value = canvas.image.img.width;
+    document.getElementById("height").value = canvas.image.img.height;
+    document.getElementById("scale").value = 1;
+
+    canvas.scale = {
+        width: canvas.image.img.width,
+        height: canvas.image.img.height,
+        scale: 1
+    };
+    img.reset();
+}
+
+document.getElementById("region-form").onsubmit = e => {
+    e.preventDefault();
+    let name = document.getElementById("name").value.trim(),
+        wheel = document.getElementById("wheel").value;
 
     let clearAndSelect = row => {
         Array.from(list.childNodes).map(node => node.classList.remove("selected"));
@@ -103,12 +143,15 @@ document.querySelector("form").onsubmit = e => {
     clearAndSelect(row);
 };
 
-document.querySelector("#upload").onclick = function () {
-    upload.style.display = "flex";
+document.getElementById("upload").onclick = () => {
+    imageMenu.style.display = "none";
+    regionMenu.style.display = "none";
+    list.style.display = "none";
+    uploadMenu.style.display = "flex";
 
-    let picture = document.querySelector("#picture"),
-        level = document.querySelector("#level"),
-        input = document.querySelector("#up_file");
+    let picture = document.getElementById("picture"),
+        level = document.getElementById("level"),
+        input = document.getElementById("up_file");
 
     if (!picture.onclick) {
         picture.onclick = () => {
@@ -121,7 +164,7 @@ document.querySelector("#upload").onclick = function () {
 
                 reader.onload = () => {
                     canvas.image = reader.result;
-                    upload.style.display = "none";
+                    uploadMenu.style.display = "none";
                 };
             };
 

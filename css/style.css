@@ -135,6 +135,7 @@ input[type=color] {
 
 form {
     display: flex;
+    justify-content: center;
     align-items: center;
 }
 
@@ -217,4 +218,8 @@ p {
     min-width: 2.5vw;
 
     border: 0.1vw solid white;
+}
+
+#image-form > input {
+    margin: 0 0.5vw;
 }

@@ -23,9 +23,17 @@ class Canvas {
         this._regions = [];
         this._currentRegion = null;
 
-        this._image = new Image();
-        this._imagePosition = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10));
-        this._imageMode = false;
+        this._image = {
+            img: new Image(),
+            position: [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10)),
+            mode: false,
+            scale: {},
+            reset: () => {
+                this._image.position = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10));
+                this._image.position[1] -= this._image.img.height;
+                this.refresh();
+            }
+        };
 
         this._keydown = null;
         this._state = true;
@@ -53,13 +61,31 @@ class Canvas {
     }
 
     set image(src) {
-        this._image.src = src;
-        this._imagePosition = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10));
+        this._image.img.src = src;
+        this._image.position = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10));
 
-        this._image.onload = () => {
-            this._imagePosition[1] -= this._image.height;
+        this._image.img.onload = () => {
+            this._image.position[1] -= this._image.img.height;
+            this._image.scale.width = this._image.img.width;
+            this._image.scale.height = this._image.img.height;
+            this._image.scale.factor = 1;
+
             this.refresh();
         };
+    }
+
+    get image() {
+        return this._image;
+    }
+
+    set scale(scale) {
+        this._image.scale.width = scale.width;
+        this._image.position[1] -= this._image.scale.height * (1 + scale.scale - this._image.scale.factor) - this._image.scale.height;
+        this._image.position[1] -= (scale.height - this._image.scale.height) * scale.scale;
+        this._image.scale.height = scale.height;
+        this._image.scale.factor = scale.scale;
+
+        this.refresh();
     }
 
     enable() {
@@ -109,7 +135,7 @@ class Canvas {
         document.removeEventListener("keydown", this._keydown);
         this._keydown = null;
 
-        this._imageMode = false;
+        this._image.mode = false;
 
         this.tiles.map(tile => tile.selected = false);
         this.refresh();
@@ -459,7 +485,7 @@ class Canvas {
     enableImage() {
         this.enable();
 
-        this._imageMode = true;
+        this._image.mode = true;
         this.refresh();
 
         this._canvas.onmousedown = e => {
@@ -470,8 +496,8 @@ class Canvas {
 
                 let delta = this.mouseDelta(this.gridSnap(prev), this.gridSnap(this.mousePosition(e)));
                 if (delta.x != 0 || delta.y != 0) {
-                    this._imagePosition[0] += delta.x;
-                    this._imagePosition[1] += delta.y;
+                    this._image.position[0] += delta.x;
+                    this._image.position[1] += delta.y;
 
                     this.refresh();
                     prev = curr;
@@ -508,8 +534,10 @@ class Canvas {
             this.drawCardinal(t);
         });
 
-        if (this._imageMode) {
-            this._ctx.drawImage(this._image, this._imagePosition[0], this._imagePosition[1]);
+        if (this._image.mode) {
+            let width = this._image.scale.width * this._image.scale.factor,
+                height = this._image.scale.height * this._image.scale.factor
+            this._ctx.drawImage(this._image.img, this._image.position[0], this._image.position[1], width, height);
         }
     }
 
@@ -525,8 +553,10 @@ class Canvas {
         let center = "(" + this._origin[0] / 10 + ", " +  -this._origin[1] / 10 + ")",
             total = "Total Tiles: " + this.tiles.length
 
-        if (!this._imageMode && this._image.src) {
-            this._ctx.drawImage(this._image, this._imagePosition[0], this._imagePosition[1]);
+        if (!this._image.mode && this._image.img.src) {
+            let width = this._image.scale.width * this._image.scale.factor,
+                height = this._image.scale.height * this._image.scale.factor
+            this._ctx.drawImage(this._image.img, this._image.position[0], this._image.position[1], width, height);
         }
 
         this._ctx.fillStyle = "#EF5A48";

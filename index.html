@@ -10,17 +10,26 @@
                 <div id="region-list"></div>
                 <canvas height="720px"></canvas>
                 <div id="region-menu" class="card menu">
-                    <form>
+                    <form id="region-form">
                         <input id="name" type="text" placeholder="Region Name" autocomplete="off" required="true">
                         <div id="colors">
                             <label id="in-wrapper"><input type="color" id="wheel" value="#ffffff"></label>
                         </div>
-                        <button id="set">set</button>
+                        <button>set</button>
                     </form>
                 </div>
                 <div id="upload-menu" class="card menu">
                     <button id="picture">picture</button>
                     <button id="level">level</button>
+                </div>
+                <div id="image-menu" class="card menu">
+                    <form id="image-form">
+                        <input type="text" id="width" placeholder="width" autocomplete="off" required="true">
+                        <input type="text" id="height" placeholder="height" autocomplete="off" required="true">
+                        <input type="text" id="scale" placeholder="scale" autocomplete="off" required="true">
+                        <button>set</button>
+                    </form>
+                    <button id="reset">reset</button>
                 </div>
             </div>
             <div id="modify">
@@ -31,7 +40,7 @@
             </div>
             <div id="config">
                 <input type="file" name="upload_file" id="up_file">
-                <button id="upload" class="button">upload</button>
+                <button id="upload">upload</button>
                 <a><button id="download">export</button></a>
             </div>
         </div>
