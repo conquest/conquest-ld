@@ -259,3 +259,8 @@ document.getElementById("delete").onclick = () => {
         list.removeChild(list.childNodes[index]);
     }
 };
+
+window.onbeforeunload = e => {
+    if (canvas.tiles.length == 0) return;
+    return true;
+};
