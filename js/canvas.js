@@ -229,11 +229,8 @@ class Canvas {
                 old.width = tile.width;
                 old.height = tile.height;
 
-                let city = tile.city;
-                if (city) {
-                    var oldCity = Object.assign({}, city.point);
-                }
-
+                let city = tile.city,
+                    oldCity = city ? Object.assign({}, city.point) : null;
                 if (cardinal) {
                     let dirs = tile.cardinal;
                     switch(dirs[cardinal]) {
