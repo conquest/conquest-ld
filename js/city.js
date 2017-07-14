@@ -35,4 +35,12 @@ class City {
         this.point.x += x;
         this.point.y += y;
     }
+
+    export(point) {
+        return {
+            x: this.point.x - point.x,
+            y: this.point.y - point.y,
+            major: this.major
+        };
+    }
 }

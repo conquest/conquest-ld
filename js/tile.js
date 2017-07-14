@@ -41,14 +41,6 @@ class Tile {
         this._height = height;
     }
 
-    get strokeStyle() {
-        return this._strokeStyle;
-    }
-
-    set strokeStyle(strokeStyle) {
-        this._strokeStyle = strokeStyle;
-    }
-
     get fillStyle() {
         return this._fillStyle;
     }
@@ -90,5 +82,20 @@ class Tile {
             S: {x: this.point.x + this.width / 2, y: this.point.y + this.height},
             W: {x: this.point.x, y: this.point.y + this.height / 2}
         };
+    }
+
+    export(center) {
+        let config = {
+            x: this.point.x - center[0],
+            y: center[1] - this.point.y - this.height,
+            w: this.width,
+            h: this.height
+        };
+
+        if (this.city) {
+            config.city = this.city.export(this.point);
+        }
+
+        return config;
     }
 }

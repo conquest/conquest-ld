@@ -12,6 +12,7 @@ class Canvas {
         }
 
         this._origin = [0, 0];
+        this._center = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10))
         this._ctx.lineWidth = 2;
 
         let fonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', sans-serif";
@@ -25,11 +26,11 @@ class Canvas {
 
         this._image = {
             img: new Image(),
-            position: [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10)),
+            position: this._center.slice(),
             mode: false,
             scale: {},
             reset: () => {
-                this._image.position = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10));
+                this._image.position = this._center.slice();
                 this._image.position[1] -= this._image.img.height;
                 this.refresh();
             }
@@ -42,6 +43,10 @@ class Canvas {
 
     get tiles() {
         return this._tiles;
+    }
+
+    set tiles(tile) {
+        this._tiles.push(tile);
     }
 
     get state() {
@@ -62,7 +67,7 @@ class Canvas {
 
     set image(src) {
         this._image.img.src = src;
-        this._image.position = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10));
+        this._image.position = this._center.slice();
 
         this._image.img.onload = () => {
             this._image.position[1] -= this._image.img.height;
@@ -86,6 +91,10 @@ class Canvas {
         this._image.scale.factor = scale.scale;
 
         this.refresh();
+    }
+
+    get center() {
+        return this._center;
     }
 
     enable() {
@@ -215,6 +224,10 @@ class Canvas {
                 old.height = tile.height;
 
                 let city = tile.city;
+                if (city) {
+                    var oldCity = Object.assign({}, city.point);
+                }
+
                 if (cardinal) {
                     let dirs = tile.cardinal;
                     switch(dirs[cardinal]) {
@@ -251,6 +264,9 @@ class Canvas {
 
                 if (this.findCollision(tile) || tile.width <= 0 || tile.height <= 0) {
                     tile.point = {x: old.x, y: old.y};
+                    if (city) {
+                        tile.city.point = {x: oldCity.x, y: oldCity.y};
+                    }
 
                     tile.width = old.width;
                     tile.height = old.height;
@@ -329,7 +345,15 @@ class Canvas {
                 cornerB = null;
             } else if (e.keyCode == 8) {
                 for (let i = this.tiles.length - 1; i >= 0; i--) {
-                    if (this.tiles[i].selected) this.tiles.splice(i, 1);
+                    if (this.tiles[i].selected) {
+                        for (let region of this.regions) {
+                            if (region.contains(this.tiles[i])) {
+                                region.remove(this.tiles[i]);
+                            }
+                        }
+
+                        this.tiles.splice(i, 1);
+                    }
                 }
                 this.refresh();
             }
@@ -442,8 +466,7 @@ class Canvas {
         };
     }
 
-    addRegion(name, color) {
-        let region = new Region(name, color);
+    addRegion(region) {
         this._regions.push(region);
         this._currentRegion = region;
     }
@@ -551,11 +574,11 @@ class Canvas {
 
     drawGrid() {
         let center = "(" + this._origin[0] / 10 + ", " +  -this._origin[1] / 10 + ")",
-            total = "Total Tiles: " + this.tiles.length
+            total = "Total Tiles: " + this.tiles.length;
 
         if (!this._image.mode && this._image.img.src) {
             let width = this._image.scale.width * this._image.scale.factor,
-                height = this._image.scale.height * this._image.scale.factor
+                height = this._image.scale.height * this._image.scale.factor;
             this._ctx.drawImage(this._image.img, this._image.position[0], this._image.position[1], width, height);
         }
 
@@ -568,12 +591,26 @@ class Canvas {
         this._ctx.drawImage(this._grid, this._origin[0], this._origin[1]);
 
         this._ctx.beginPath();
-        let offsets = [this._canvas.offsetWidth, this._canvas.offsetHeight];
-        this._ctx.moveTo(this._origin[0], (offsets[1] / 2) - (offsets[1] / 2 % 10));
-        this._ctx.lineTo(this._origin[0] + offsets[0], (offsets[1] / 2) - (offsets[1] / 2 % 10));
+        this._ctx.moveTo(this._origin[0], this._center[1]);
+        this._ctx.lineTo(this._origin[0] + this._canvas.offsetWidth, this._center[1]);
 
-        this._ctx.moveTo((offsets[0] / 2) - (offsets[0] / 2 % 10), this._origin[1]);
-        this._ctx.lineTo((offsets[0] / 2) - (offsets[0] / 2 % 10), this._origin[1] + offsets[1]);
+        this._ctx.moveTo(this._center[0], this._origin[1]);
+        this._ctx.lineTo(this._center[0], this._origin[1] + this._canvas.offsetHeight);
         this._ctx.stroke();
+    }
+
+    export() {
+        let config = {};
+        for (let region of this.regions) {
+            if (region.tiles.length == 0) continue;
+            Object.assign(config, region.export(this._center));
+        }
+
+        return config;
+    }
+
+    reset() {
+        this._tiles = [];
+        this._regions = [];
     }
 }

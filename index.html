@@ -19,8 +19,12 @@
                     </form>
                 </div>
                 <div id="upload-menu" class="card menu">
-                    <button id="picture">picture</button>
+                    <button id="picture">image</button>
                     <button id="level">level</button>
+                </div>
+                <div id="download-menu" class="card menu">
+                    <input type="text" id="filename" placeholder="map.json" autocomplete="off" required="true">
+                    <a id="export"><button id="export-button">export</button></a>
                 </div>
                 <div id="image-menu" class="card menu">
                     <form id="image-form">
@@ -41,7 +45,7 @@
             <div id="config">
                 <input type="file" name="upload_file" id="up_file">
                 <button id="upload">upload</button>
-                <a><button id="download">export</button></a>
+                <button id="download">download</button>
             </div>
         </div>
         <script src="js/tile.js"></script>

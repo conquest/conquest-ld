@@ -13,7 +13,8 @@ const tile = document.getElementById("tile"),
     imageMenu = document.getElementById("image-menu"),
     regionMenu = document.getElementById("region-menu"),
     list = document.getElementById("region-list"),
-    uploadMenu = document.getElementById("upload-menu");
+    uploadMenu = document.getElementById("upload-menu"),
+    downloadMenu = document.getElementById("download-menu");
 
 const cards = Array.from(document.getElementById("modify").childNodes).filter(node => node.nodeType != 3);
 cards.map(card => {
@@ -22,6 +23,7 @@ cards.map(card => {
         regionMenu.style.display = "none";
         list.style.display = "none";
         uploadMenu.style.display = "none";
+        downloadMenu.style.display = "none";
 
         cards.map(card => card.classList.remove("selected"));
         card.classList.add("selected");
@@ -69,6 +71,7 @@ const canvasOff = e => {
 };
 regionMenu.onclick = canvasOff;
 imageMenu.onclick = canvasOff;
+downloadMenu.onclick = canvasOff;
 
 document.getElementById("image-form").onsubmit = e => {
     e.preventDefault();
@@ -94,31 +97,16 @@ document.getElementById("reset").onclick = () => {
     img.reset();
 }
 
-document.getElementById("region-form").onsubmit = e => {
-    e.preventDefault();
-    let name = document.getElementById("name").value.trim(),
-        wheel = document.getElementById("wheel").value;
+const clearAndSelect = row => {
+    Array.from(list.childNodes).map(node => node.classList.remove("selected"));
+    row.classList.add("selected");
+};
 
+function regionRow(name, color) {
     let clearAndSelect = row => {
         Array.from(list.childNodes).map(node => node.classList.remove("selected"));
         row.classList.add("selected");
     };
-
-    let regions = canvas.regions;
-    for (let i = 0; i < regions.length; i++) {
-        if (regions[i].name == name) {
-            regions[i].color = wheel;
-            canvas.currentRegion = regions[i];
-
-            let preview = list.childNodes[i].getElementsByClassName("color-preview")[0];
-            preview.style.backgroundColor = wheel;
-            clearAndSelect(list.childNodes[i]);
-
-            return;
-        }
-    }
-
-    canvas.addRegion(name, wheel);
 
     let row = document.createElement("div");
     row.setAttribute("class", "row");
@@ -128,7 +116,7 @@ document.getElementById("region-form").onsubmit = e => {
 
     let div = document.createElement("div");
     div.setAttribute("class", "color-preview");
-    div.style.backgroundColor = wheel;
+    div.style.backgroundColor = color;
 
     row.appendChild(rName);
     row.appendChild(div)
@@ -136,9 +124,34 @@ document.getElementById("region-form").onsubmit = e => {
 
     row.onclick = function () {
         let index = Array.from(list.childNodes).indexOf(this);
-        canvas.currentRegion = regions[index];
+        canvas.currentRegion = canvas.regions[index];
         clearAndSelect(this);
     };
+
+    return row;
+}
+
+document.getElementById("region-form").onsubmit = e => {
+    e.preventDefault();
+    let name = document.getElementById("name").value.trim(),
+        color = document.getElementById("wheel").value;
+
+    let regions = canvas.regions;
+    for (let i = 0; i < regions.length; i++) {
+        if (regions[i].name == name) {
+            regions[i].color = color;
+            canvas.currentRegion = regions[i];
+
+            let preview = list.childNodes[i].getElementsByClassName("color-preview")[0];
+            preview.style.backgroundColor = color;
+            clearAndSelect(list.childNodes[i]);
+
+            return;
+        }
+    }
+
+    canvas.addRegion(new Region(name, color));
+    let row = regionRow(name, color);
 
     clearAndSelect(row);
 };
@@ -148,31 +161,91 @@ document.getElementById("upload").onclick = () => {
     regionMenu.style.display = "none";
     list.style.display = "none";
     uploadMenu.style.display = "flex";
+    downloadMenu.style.display = "none";
 
     let picture = document.getElementById("picture"),
         level = document.getElementById("level"),
         input = document.getElementById("up_file");
 
-    if (!picture.onclick) {
-        picture.onclick = () => {
-            input.onchange = e => {
-                let file = e.target.files[0];
-                if (!file) return;
+    picture.onclick = () => {
+        input.onchange = e => {
+            let file = e.target.files[0];
+            if (!(file && file.type.match(/.(jpg|jpeg|png|gif)$/i))) return;
 
-                let reader = new FileReader();
-                reader.readAsDataURL(file);
+            let reader = new FileReader();
+            reader.readAsDataURL(file);
 
-                reader.onload = () => {
-                    canvas.image = reader.result;
-                    uploadMenu.style.display = "none";
-                };
+            reader.onload = () => {
+                canvas.image = reader.result;
+                uploadMenu.style.display = "none";
+            };
+        };
+
+        input.click();
+    };
+
+    level.onclick = () => {
+        input.onchange = e => {
+            let file = e.target.files[0];
+            if (!(file && file.type.match("json"))) return;
+
+            let reader = new FileReader();
+            reader.readAsBinaryString(file);
+
+            reader.onload = () => {
+                let config = JSON.parse(reader.result);
+                canvas.reset();
+                list.innerHTML = "";
+
+                for (let name in config) {
+                    let region = new Region(name, config[name].color),
+                        tiles = config[name].tiles;
+
+                    for (let tile of tiles) {
+                        let t = new Tile({x: tile.x, y: canvas.center[1] - tile.h}, {x: tile.x + tile.w, y: canvas.center[1]});
+                        t.translate(canvas.center[0], -tile.y);
+                        canvas.tiles = t;
+                        if (tile.city) {
+                            t.city = new City({x: tile.city.x + t.point.x, y: tile.city.y + t.point.y});
+                            t.city.major = tile.city.major;
+                        }
+                        t.fillStyle = region.color;
+
+                        region.add(t);
+                    }
+
+                    regionRow(region.name, region.color);
+                    canvas.addRegion(region);
+                }
+
+                canvas.refresh();
             };
 
-            input.click();
         };
 
-        level.onclick = () => {
-            input.click();
-        };
-    }
+        input.click();
+    };
 };
+
+document.getElementById("download").onclick = () => {
+    imageMenu.style.display = "none";
+    regionMenu.style.display = "none";
+    list.style.display = "none";
+    uploadMenu.style.display = "none";
+    downloadMenu.style.display = "flex";
+
+    let fileName = document.getElementById("filename");
+    fileName.onchange = function () {
+        if (this.value.indexOf(".json") < 0) this.value += ".json";
+    }
+}
+
+document.getElementById("export-button").onclick = () => {
+    if (canvas.regions.length == 0) return;
+    let out = document.getElementById("export"),
+        fileName = document.getElementById("filename");
+
+    let data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(canvas.export(), null, 4));
+    out.href = data;
+    out.download = fileName.value.trim();
+}

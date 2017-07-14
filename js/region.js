@@ -38,4 +38,17 @@ class Region {
     contains(tile) {
         return this.tiles.includes(tile);
     }
+
+    export(center) {
+        let config = {};
+        config[this.name] = {};
+        config[this.name].color = this.color;
+        config[this.name].tiles = [];
+
+        for (let tile of this.tiles) {
+            config[this.name].tiles.push(tile.export(center));
+        }
+
+        return config;
+    }
 }
