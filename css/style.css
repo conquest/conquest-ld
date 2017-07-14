@@ -220,6 +220,6 @@ p {
     border: 0.1vw solid white;
 }
 
-#image-form > input {
+#image-form > input, #filename {
     margin: 0 0.5vw;
 }

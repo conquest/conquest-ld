@@ -95,7 +95,7 @@ document.getElementById("reset").onclick = () => {
         scale: 1
     };
     img.reset();
-}
+};
 
 const clearAndSelect = row => {
     Array.from(list.childNodes).map(node => node.classList.remove("selected"));
@@ -197,9 +197,9 @@ document.getElementById("upload").onclick = () => {
                 canvas.reset();
                 list.innerHTML = "";
 
-                for (let name in config) {
-                    let region = new Region(name, config[name].color),
-                        tiles = config[name].tiles;
+                for (let name in config.regions) {
+                    let region = new Region(name, config.regions[name].color),
+                        tiles = config.regions[name].tiles;
 
                     for (let tile of tiles) {
                         let t = new Tile({x: tile.x, y: canvas.center[1] - tile.h}, {x: tile.x + tile.w, y: canvas.center[1]});
@@ -234,18 +234,28 @@ document.getElementById("download").onclick = () => {
     uploadMenu.style.display = "none";
     downloadMenu.style.display = "flex";
 
+    document.getElementById("export-scale").value = 1;
     let fileName = document.getElementById("filename");
     fileName.onchange = function () {
         if (this.value.indexOf(".json") < 0) this.value += ".json";
-    }
-}
+    };
+};
 
 document.getElementById("export-button").onclick = () => {
     if (canvas.regions.length == 0) return;
     let out = document.getElementById("export"),
-        fileName = document.getElementById("filename");
+        fileName = document.getElementById("filename"),
+        scale = parseFloat(document.getElementById("export-scale").value);
 
-    let data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(canvas.export(), null, 4));
+    let data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(canvas.export(scale), null, 4));
     out.href = data;
     out.download = fileName.value.trim();
-}
+};
+
+document.getElementById("delete").onclick = () => {
+    let index = canvas.regions.indexOf(canvas.currentRegion);
+    if (index > -1) {
+        canvas.regions.splice(index, 1);
+        list.removeChild(list.childNodes[index]);
+    }
+};

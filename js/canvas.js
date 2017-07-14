@@ -9,10 +9,10 @@ class Canvas {
         this._grid.src = "./assets/grid.svg";
         this._grid.onload = () => {
             this.drawGrid();
-        }
+        };
 
         this._origin = [0, 0];
-        this._center = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10))
+        this._center = [this._canvas.offsetWidth / 2, this._canvas.offsetHeight / 2].map(val => val - (val % 10));
         this._ctx.lineWidth = 2;
 
         let fonts = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Ubuntu, 'Helvetica Neue', sans-serif";
@@ -63,6 +63,10 @@ class Canvas {
 
     set currentRegion(region) {
         this._currentRegion = region;
+    }
+
+    get currentRegion() {
+        return this._currentRegion;
     }
 
     set image(src) {
@@ -168,7 +172,9 @@ class Canvas {
     tileUnderMouse(point) {
         for (let t of this.tiles) {
             if (t.point.x < point.x && t.point.x + t.width > point.x &&
-                t.point.y + t.height > point.y && t.point.y < point.y) return t;
+                t.point.y + t.height > point.y && t.point.y < point.y) {
+                return t;
+            }
         }
 
         return null;
@@ -407,6 +413,8 @@ class Canvas {
 
     drawCity(tile) {
         let city = tile.city;
+        if (!city) return;
+
         this._ctx.fillStyle = city.fillStyle;
 
         this._ctx.beginPath();
@@ -537,29 +545,25 @@ class Canvas {
         this.clear();
 
         let defer = [];
-        let draw = t => {
-            this.drawTile(t);
-            if (t.city) {
-                this.drawCity(t);
-            }
-        };
 
         for (let t of this.tiles) {
             if (t.selected) {
                 defer.push(t);
             } else {
-                draw(t);
+                this.drawTile(t);
             }
         }
 
         defer.map(t => {
-            draw(t);
+            this.drawTile(t);
             this.drawCardinal(t);
         });
 
+        this.tiles.map(t => this.drawCity(t));
+
         if (this._image.mode) {
             let width = this._image.scale.width * this._image.scale.factor,
-                height = this._image.scale.height * this._image.scale.factor
+                height = this._image.scale.height * this._image.scale.factor;
             this._ctx.drawImage(this._image.img, this._image.position[0], this._image.position[1], width, height);
         }
     }
@@ -599,12 +603,15 @@ class Canvas {
         this._ctx.stroke();
     }
 
-    export() {
-        let config = {};
+    export(scale) {
+        let config = {
+            regions: {}
+        };
         for (let region of this.regions) {
             if (region.tiles.length == 0) continue;
-            Object.assign(config, region.export(this._center));
+            Object.assign(config.regions, region.export(this.center));
         }
+        config.scale = scale;
 
         return config;
     }
