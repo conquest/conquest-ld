@@ -1,8 +1,13 @@
 "use strict";
 
 const draw = document.getElementById("draw"),
-    cvs = document.querySelector("canvas");
-cvs.width = draw.offsetWidth - (draw.offsetWidth % 10);
+    cvs = document.querySelector("canvas"),
+    modify = document.getElementById("modify");
+cvs.width = draw.offsetWidth;
+
+cvs.height = document.body.offsetHeight;
+document.getElementById("container").style.height = cvs.height + "px";
+modify.style.flexBasis = "calc(" + cvs.height + "px - 2.4vw)";
 
 const canvas = new Canvas();
 
@@ -16,7 +21,7 @@ const tile = document.getElementById("tile"),
     uploadMenu = document.getElementById("upload-menu"),
     downloadMenu = document.getElementById("download-menu");
 
-const cards = Array.from(document.getElementById("modify").childNodes).filter(node => node.nodeType != 3);
+const cards = Array.from(modify.childNodes).filter(node => node.nodeType != 3);
 cards.map(card => {
     card.onclick = () => {
         imageMenu.style.display = "none";

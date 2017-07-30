@@ -17,6 +17,7 @@
 }
 
 body {
+    height: 100vh;
     background-color: #E7E9EC;
 }
 
@@ -24,8 +25,6 @@ body {
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
-
-    height: 720px;
 
     background-color: #EC5745;
 }
@@ -45,8 +44,6 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-
-    flex: 0 0 calc(719px - 2.4vw);
 }
 
 #config {

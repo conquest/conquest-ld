@@ -106,35 +106,27 @@ class Canvas {
 
         document.onkeydown = e => {
             if (!this.state) return;
-            switch (e.keyCode) {
-                case 65:
-                case 37: {
-                    this._ctx.translate(10, 0);
-                    this._origin[0] -= 10;
-                    this.refresh();
-                    break;
-                }
-                case 87:
-                case 38: {
-                    this._ctx.translate(0, 10);
-                    this._origin[1] -= 10;
-                    this.refresh();
-                    break;
-                }
-                case 68:
-                case 39: {
-                    this._ctx.translate(-10, 0);
-                    this._origin[0] += 10;
-                    this.refresh();
-                    break;
-                }
-                case 83:
-                case 40: {
-                    this._ctx.translate(0, -10);
-                    this._origin[1] += 10;
-                    this.refresh();
-                    break;
-                }
+
+            let k = e.keyCode;
+            if (k == 65 || k == 37) {
+                this._ctx.translate(10, 0);
+                this._origin[0] -= 10;
+                this.refresh();
+            }
+            if (k == 87 || k == 38) {
+                this._ctx.translate(0, 10);
+                this._origin[1] -= 10;
+                this.refresh();
+            }
+            if (k == 68 || k == 39) {
+                this._ctx.translate(-10, 0);
+                this._origin[0] += 10;
+                this.refresh();
+            }
+            if (k == 83 || k == 40) {
+                this._ctx.translate(0, -10);
+                this._origin[1] += 10;
+                this.refresh();
             }
         };
     }
